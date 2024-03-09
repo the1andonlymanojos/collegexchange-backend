@@ -13,7 +13,7 @@ export default function(fastify, opts, done){
 
     fastify.post('/withdraw/:id', {config:{auth: true}}, withdrawOffer ) // withdraw offer, if user is bidder.
 
-    fastify.get('/listing/:id', {config:{auth: true}}, getOffers) // get all offers for a listing, if user is either bidder or listing owner.
+    fastify.get('/listing/:id', {config:{auth: true}}, getOffers) // get all offers on a specific listing, user is bidder
 
     done();
 }

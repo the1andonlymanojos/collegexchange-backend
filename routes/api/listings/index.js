@@ -1,6 +1,7 @@
 import getAllListings from './getAllListings.js';
 import getListingById from './getListingDetails.js';
 import {postListingHandler} from "./postListingHandler.js";
+import getAllOffersOnAListing from './getAllOffersOnAListing.js';
 import multer from "fastify-multer";
 import randomstring from "randomstring";
 
@@ -41,6 +42,9 @@ export default function (fastify, opts, done) {
 
     fastify.get('/:id', getListingById) //title, images, description, external link, seller details, offers made by this user, if any and their status.
 
+    fastify.get('/offers/:id',{
+        config:{auth:true}
+    },getAllOffersOnAListing)
 
     fastify.put('/:id', (request, reply)=>{
         return{

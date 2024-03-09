@@ -1,4 +1,5 @@
 export default async function (request, reply){
+    console.log("beginning of postOffer handler")
     const listingId = request.params.id;
     const userId = request.user.userID;
     const {body} = request;
@@ -10,10 +11,11 @@ export default async function (request, reply){
     }
     const price = body.price;
 
-
+    const connection = await this.mysql.getConnection();
+    console.log("got connection")
     console.log(ttl);
     try {
-        const connection = await this.mysql.getConnection();
+        console.log("inside of try block")
         const listingQuery = 'SELECT * FROM listings WHERE id = ?';
         const [results, fields] = await connection.query(listingQuery, [listingId]);
         if (results.length==0){
@@ -24,13 +26,22 @@ export default async function (request, reply){
             reply.code(400).send({message: "you cannot make an offer on your own listing"})
             return;
         }
+        if (results[0].highest_bid<=price){
+            const upDateQuery = 'UPDATE listings SET highest_bid = ? WHERE id = ?';
+            const [updateRes, updateFields] = await connection.query(upDateQuery, [price, listingId]);
+        }
         const owner = results[0].creator_id;
         if ('available'.localeCompare(results[0].availability)!==0){
             reply.code(400).send({message: "listing is not available"})
             return;
         }
-        const insertQuery = 'INSERT INTO offers (listing_id, bidder_id, amount, validity_duration, owner_id) VALUES (?, ?, ?, ?,?)';
-        const [insertRes, insertFields] = await connection.query(insertQuery, [listingId, userId, price, ttl, owner]);
+
+        const invaludateQuery = 'UPDATE offers SET is_valid = 0 WHERE listing_id = ? and bidder_id = ?';
+        const [invalidateRes, invalidateFields] = await connection.query(invaludateQuery, [listingId, userId]);
+
+        const expTime = new Date(Date.now() + ttl*24*60*60*1000);
+        const insertQuery = 'INSERT INTO offers (listing_id, bidder_id, amount, validity_duration, expires_at, owner_id) VALUES (?, ?, ?, ?,?,?)';
+        const [insertRes, insertFields] = await connection.query(insertQuery, [listingId, userId, price, ttl,expTime, owner]);
         const offerId = insertRes.insertId;
         reply.code(200).send({message: "success", offerId: offerId})
 
@@ -38,7 +49,8 @@ export default async function (request, reply){
         reply.code(500).send({message: "internal server error", error: e})
         console.log(e)
     }finally {
-
+        connection.release()
+        console.log("released connection")
     }
 
 };

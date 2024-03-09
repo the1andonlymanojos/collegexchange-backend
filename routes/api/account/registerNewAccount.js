@@ -7,6 +7,7 @@ const registerHandler = async function  (request, reply){
     console.log(email, hashedPassword, username, phoneNumber);
     const {mysql} = this;
     const connection = await this.mysql.getConnection();
+    try{
     const [results, fields] = await connection.query('SELECT * FROM users WHERE email=?', [email]);
     console.log(results)
     if(results.length>0){
@@ -25,6 +26,15 @@ const registerHandler = async function  (request, reply){
             token: token,
             UserObject: {email: email, userID: results.insertId}
         })
+    }
+    } catch (e){
+        console.log(e)
+        reply.code(500).send({message: 'Internal server error', error: e});
+
+    }
+    finally {
+        connection.release();
+
     }
 }
 

@@ -28,8 +28,9 @@ export default async function (request, reply){
 
     query += ` limit ${limit} offset ${offset}`
     console.log(query)
+    const connection = await this.mysql.getConnection()
     try{
-        const connection = await this.mysql.getConnection()
+
         const [rows, fields] = await connection.query(query)
         const imageIDs = [];
         for (const row of rows) {
@@ -43,6 +44,10 @@ export default async function (request, reply){
     }catch(err){
         console.log(err)
         reply.code(500).send({message: "Internal Server Error"})
+    }
+    finally {
+        connection.release()
+
     }
 }
 

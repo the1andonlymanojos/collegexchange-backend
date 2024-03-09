@@ -33,4 +33,7 @@ export default async function (request, reply) {
 } catch (e){
         reply.code(500).send({message: "internal server error", error: e})
     }
+    finally {
+        await connection.release();
+    }
 }

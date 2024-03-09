@@ -6,6 +6,7 @@ import {putAccountDetails} from "./putAccountDetails.js";
 import  getOffersOfAUser from "./getOffersOfAUser.js";
 import multer from "fastify-multer";
 import randomstring from "randomstring";
+
 let options = {
     length: 15,
     charset: 'alphabetic',

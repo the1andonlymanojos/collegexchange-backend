@@ -36,6 +36,9 @@ const putAccountDetails =  async function (request, reply){
         console.log(err)
         reply.code(500).send({message: "internal server error", error: err})
     }
+    finally {
+        connection.release()
+    }
 }
 
 export {putAccountDetails}

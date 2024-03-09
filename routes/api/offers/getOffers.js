@@ -1,11 +1,10 @@
 export default async function (request, reply){
-    const offerID = request.params.id;
     const userID = request.user.userID;
+    const listingID = request.params.id;
     const connection = await this.mysql.getConnection();
     try{
-
-        const offerQuery = 'SELECT * FROM offers WHERE id = ?';
-        const [results, fields] = await connection.query(offerQuery, [offerID]);
+        const offerQuery = 'SELECT * FROM offers WHERE listing_id = ? and bidder_id = ? and is_valid = 1';
+        const [results, fields] = await connection.query(offerQuery, [listingID, userID]);
         if (results.length==0){
             reply.code(404).send({message: "offer not found"})
             return;
@@ -21,6 +20,6 @@ export default async function (request, reply){
         console.log(e)
     }
     finally {
-        connection.release();
+        connection.release()
     }
 }

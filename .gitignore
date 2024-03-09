@@ -49,6 +49,8 @@ profile-*
 .idea
 .env
 
+uploads
+
 # vscode
 .vscode
 *code-workspace

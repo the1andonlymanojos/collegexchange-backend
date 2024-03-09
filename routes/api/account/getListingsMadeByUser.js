@@ -2,6 +2,8 @@ export default async function(request, reply){
     console.log(request.user)
     const userid = request.user.userID;
     const connection = await this.mysql.getConnection();
+
+    //change pathOriginal to pathThumbnail
     try {
         const query = `
 SELECT

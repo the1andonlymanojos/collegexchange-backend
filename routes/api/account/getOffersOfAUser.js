@@ -3,7 +3,7 @@ export default async function (request, reply){
     const connection = await this.mysql.getConnection();
     try{
 
-        const offerQuery = 'SELECT o.id, o.amount,o.created_at,o.expires_at,o.listing_id,o.accepted,o.is_valid\n' +
+        const offerQuery = 'SELECT o.id, o.amount,o.created_at,o.expires_at,o.listing_id,o.accepted,o.is_valid, o.transaction_id\n' +
             'FROM offers o\n' +
             'JOIN (\n' +
             '    SELECT listing_id, MAX(created_at) AS latest_created_at\n' +
@@ -19,6 +19,26 @@ export default async function (request, reply){
             reply.code(404).send({message: "no offers found"})
             return;
         }
+        const expiredOffers = [];
+        for (const result of results){
+            const expiresAt = new Date(result.expires_at);
+            const now = new Date();
+            if (expiresAt<now && result.accepted!==1){
+                expiredOffers.push(result.id);
+            }
+        }
+
+        if (expiredOffers.length>0){
+            const updateQuery = `UPDATE offers SET accepted=0 WHERE id IN (${expiredOffers.join(',')})`;
+            const [updateResults, updateFields] = await connection.query(updateQuery);
+        }
+        for (const result of results){
+            if (expiredOffers.includes(result.id)){
+                result.accepted = 0;
+            }
+        }
+
+
         //get listing details for each offer, append to results, create list of listing ids first, then query for each listing id.
         let listingIDs = [];
         for (const result of results) {

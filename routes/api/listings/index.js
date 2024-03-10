@@ -29,7 +29,7 @@ const upload = multer({storage}) //multer instance
 
 export default function (fastify, opts, done) {
 
-    fastify.get('/', getAllListings) // implement dynamic query builder, tokenized search, ranking based on number of tokens matched.
+    fastify.post('/search', getAllListings) // implement dynamic query builder, tokenized search, ranking based on number of tokens matched.
 
 
     fastify.post('/',

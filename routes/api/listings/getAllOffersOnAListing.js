@@ -28,7 +28,7 @@ FROM
         const offerQuery = 'SELECT * FROM offers WHERE listing_id = ? and is_valid = 1';
         const [results, fields] = await connection.query(offerQuery, [listingID]);
         if (results.length==0){
-            reply.code(404).send({message: "offer not found"})
+            reply.code(200).send({message: "success", listing: results1[0]})
             return;
         }
         reply.code(200).send({message: "success", offers: results, listing: results1[0]})

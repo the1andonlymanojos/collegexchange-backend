@@ -6,7 +6,7 @@ export default async function (request, reply){
         const offerQuery = 'SELECT * FROM offers WHERE listing_id = ? and bidder_id = ? and is_valid = 1';
         const [results, fields] = await connection.query(offerQuery, [listingID, userID]);
         if (results.length==0){
-            reply.code(404).send({message: "offer not found"})
+            reply.code(460).send({message: "offer not found"})
             return;
         }
         if (userID!==results[0].bidder_id && userID!==results[0].owner_id){

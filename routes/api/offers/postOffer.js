@@ -23,7 +23,7 @@ export default async function (request, reply){
             return;
         }
         if (results[0].creator_id == userId){
-            reply.code(400).send({message: "you cannot make an offer on your own listing"})
+            reply.code(469).send({message: "you cannot make an offer on your own listing"})
             return;
         }
         if (results[0].highest_bid<=price){

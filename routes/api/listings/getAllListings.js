@@ -1,46 +1,58 @@
 export default async function (request, reply){
-    const limit = request.query.limit || 10;
-    const offset = request.query.offset || 0;
-    const filters = request.query.filters || {};
-   //build mysql query based on filters
-    let query = `select * from listings where `
-    //tokenize category string, and add to query
-    //if (filters.category) query += `category = ${filters.category} and `
-    // implement category filter after figuring out how to implement categories
-    //price
-    if (filters.price){
-        if (filters.price.min) query += `suggested_minimum_bid >= ${filters.price.min} and `
-        if (filters.price.max) query += `suggested_minimum_bid <= ${filters.price.max} and `
-    }
-    //availability
-    if (filters.availability) query += `availability = ${filters.availability} and `
-    //location
-    if (filters.location) query += `location = ${filters.location} and `
-    //search to be implemented later, for now the plan is to tokenize search string, then search for each token in title, description, and category columns, then rank based on number of tokens matched.
-//remove where if no filters are provided
-    if (query.slice(-6) === 'where '){
-        query = query.slice(0,-6)
-    }
-    if(query.slice(-4) === 'and '){
-        query = query.slice(0,-4)
-    }
+    const body = request.body;
+    console.log(body)
+    console.log("BODY")
+    const searchString = request.body.searchString;
+    const offset = request.body.offset;
+    const limit = request.body.limit;
 
+    const { query2, keywords } = constructSearchQuery(searchString);
+    const query = query2.concat(` LIMIT ${offset},${limit};`);
+    console.log(query, keywords)
 
-    query += ` limit ${limit} offset ${offset}`
-    console.log(query)
     const connection = await this.mysql.getConnection()
     try{
+        const [results, fields] = await connection.query(query, keywords);
 
-        const [rows, fields] = await connection.query(query)
-        const imageIDs = [];
-        for (const row of rows) {
-            for (let i = 0; i < row.images.length; i++) {
-                imageIDs.push(row.images[i])
+        console.log(results)
+        if (results.length===0){
+            const recentListingsQuery = `SELECT * FROM listings ORDER BY id DESC LIMIT 10;`
+            const [results1, fields1] = await connection.query(recentListingsQuery);
+            for (const result of results1) {
+                let query2 = "SELECT pathOriginal FROM images WHERE ";
+                for (const image of result.images) {
+                    query2=query2.concat(`id = ${image} OR `);
+                }
+                query2=query2.slice(0, -4);
+                const [results2, fields2] = await connection.query(query2);
+                for (let i = 0; i < results2.length; i++) {
+                    //make urls
+                    results2[i] = `${results2[i].pathOriginal}`;
+                    //replace originals with thumbnails for thumbnails
+                }
+                result.images = results2;
             }
-        }
 
-        console.log(imageIDs)
-        reply.send(rows)
+            reply.code(404).send({message: "no listings found", listings:results1})
+            return;
+        }
+        for (const result of results) {
+
+            let query2 = "SELECT pathOriginal FROM images WHERE ";
+            for (const image of result.images) {
+                query2=query2.concat(`id = ${image} OR `);
+            }
+            query2=query2.slice(0, -4);
+            const [results2, fields2] = await connection.query(query2);
+            for (let i = 0; i < results2.length; i++) {
+                //make urls
+                results2[i] = `${results2[i].pathOriginal}`;
+                //replace originals with thumbnails for thumbnails
+            }
+            result.images = results2;
+        }
+        reply.code(200).send({message: "success", listings: results})
+
     }catch(err){
         console.log(err)
         reply.code(500).send({message: "Internal Server Error"})
@@ -51,23 +63,30 @@ export default async function (request, reply){
     }
 }
 
-const schema = {
-    querystring: {
-        limit: {type: 'number'},
-        offset: {type: 'number'},
-        filters: {type: 'object',
-            properties:{
-                category: {type: 'string'},
-                price: {type: 'object',
-                    properties: {
-                        min: {type: 'number'},
-                        max: {type: 'number'}
-                    }
-                },
-                availability: {type: 'string'},
-                location: {type: 'string'},
-                search: {type: 'string'}
-            }
-        }
+
+
+const fillerWords = ['a', 'an', 'the', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'from', 'by', 'with', 'like'];
+
+function constructSearchQuery(searchString) {
+    // Tokenize the search string into words
+    const words = searchString.toLowerCase().split(/\s+/);
+
+    // Filter out filler words
+    const keywords = words.filter(word => !fillerWords.includes(word));
+    //add % to each keyword
+    for (let i = 0; i < keywords.length; i++) {
+        keywords[i] = `%${keywords[i]}%`;
     }
+    let query2 = 'SELECT DISTINCT * FROM listings WHERE ';
+    for (let i = 0; i < keywords.length; i++) {
+        query2 = query2.concat('description LIKE ? OR ');
+    }
+    for (let i = 0; i < keywords.length; i++) {
+        query2 = query2.concat('title LIKE ? OR ');
+    }
+
+    query2 = query2.slice(0, -4);
+    keywords.push(...keywords);
+    console.log(keywords+" here ")
+    return{ query2, keywords};
 }

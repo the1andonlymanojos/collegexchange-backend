@@ -31,7 +31,7 @@ export default async function (fastify, opts) {
 
   })
   fastify.register(cors,{
-    origin: "http://localhost:8080",
+    origin:['http://192.168.31.221:8080'],
     credentials: true
   })
 

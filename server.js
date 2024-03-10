@@ -1,21 +1,21 @@
 'use strict'
 
 // Read the .env file.
-import 'dotenv/config'
+import 'dotenv/config.js'
 
 // Require the framework
-import Fastify from 'fastify'
-
+import fastify from "fastify";
+import application from './app.js'
 // Require library to exit fastify process, gracefully (if possible)
 import closeWithGrace from 'close-with-grace'
 
 // Instantiate Fastify with some config
-const app = Fastify({
-  logger: false
+const app = fastify({
+  logger: true
 })
 
 // Register your application as a normal plugin.
-import appService from './app.js'
+const appService = application
 app.register(appService)
 
 // delay is the number of milliseconds for the graceful close to finish
@@ -32,7 +32,7 @@ app.addHook('onClose', async (instance, done) => {
 })
 
 // Start listening.
-app.listen({ port: process.env.PORT || 3000 }, (err) => {
+app.listen({ port: process.env.PORT || 3000, host:"0.0.0.0" }, (err) => {
   if (err) {
     app.log.error(err)
     process.exit(1)

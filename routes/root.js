@@ -12,10 +12,6 @@ const storage = multer.diskStorage({
 const upload = multer({storage})
 export default async function (fastify, opts) {
   fastify.get('/', async function (request, reply) {
-    const mysql = this.mysql;
-    const connection = await mysql.getConnection();
-    const [results, fields] = await connection.query('SELECT * FROM users');
-    connection.release();
-    reply.send(results);
+    reply.send({ hello: 'world' })
   });
 }

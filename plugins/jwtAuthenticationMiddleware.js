@@ -6,6 +6,8 @@ async function jwtAuthenticationMiddleware(fastify, opts){
         const routeOptions = request.routeOptions.config;
         if (routeOptions.auth===true){
             try{
+                console.log(request.headers)
+                console.log(request.cookies)
                 const token = request.cookies.jwtToken;
                 const decoded = await jwt.verify(token, process.env.JWT_SECRET);
                 request.user = decoded;

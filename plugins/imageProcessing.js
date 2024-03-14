@@ -6,7 +6,7 @@ const functions = async function (fastify, opts) {
     fastify.decorate('processImage', async function (imageID, pathToOriginal, pathToProcessed, options, qual) {
     try {
       let image = sharp(pathToOriginal);
-console.log("here");
+      console.log("here");
       if (options.width && options.height) {
         image = image.resize(options.width, options.height, {
           position: options.position || 'centre'
@@ -20,7 +20,9 @@ console.log("here");
       }
       console.log("format done");
 
-      const p=pathToProcessed+pathToOriginal.slice(pathToOriginal.lastIndexOf('/')+1);
+      let p=pathToProcessed+pathToOriginal.slice(pathToOriginal.lastIndexOf('/')+1);
+      //update p's extension to options.format
+      p=p.slice(0, p.lastIndexOf('.'))+"."+options.format;
       console.log(p);
       await image.toFile(p);
       console.log("toFile done");

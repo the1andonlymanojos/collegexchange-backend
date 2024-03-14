@@ -9,7 +9,7 @@ const loginHandler = async function (request, reply){
             const isMatch = await this.comparePassword(password, results[0].password);
             if(isMatch){
                 const token = await this.generateJWT(results[0].id, results[0].email);
-                reply.setCookie('jwtToken', token, {path: '/', httpOnly: true, expires: new Date(Date.now() + 86400000)})
+                reply.setCookie('jwtToken', token, {path: '/', httpOnly: true, sameSite:"none", expires: new Date(Date.now() + 86400000)})
                 reply.code(200).send({
                     message: 'User logged in',
                     token: token,

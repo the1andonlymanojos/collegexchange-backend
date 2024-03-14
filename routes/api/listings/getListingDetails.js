@@ -5,23 +5,27 @@ export default async function (request, reply){
     try{
         let [results, fields] = await connection.query(query, [id]);
         console.log(results)
-        let query2 = "SELECT pathOriginal FROM images WHERE ";
+        let query2 = "SELECT pathOriginal, pathMedium FROM images WHERE ";
         for (const image of results[0].images) {
             query2=query2.concat(`id = ${image} OR `);
             console.log(query2)
         }
+        console.log(results[0].description.split("TAGS:")[1])
+        results.description = results[0].description.split("TAGS:")[0];
+        console.log(results.description)
         query2=query2.slice(0, -4);
         let [results2, fields2] = await connection.query(query2);
         console.log(results2)
         for (let i = 0; i < results2.length; i++) {
-            //make urls
-            results2[i] = `${request.protocol}://${request.hostname}/${results2[i].pathOriginal}`;
-            //replace originals with thumbnails for thumbnails
-            results2[i] = results2[i].replace('originals', 'thumbnails');
-
+            if (results2[i].pathMedium){
+                results2[i] = `https://manojshivagange.tech:3000/${results2[i].pathMedium}`;
+            } else {
+                results2[i] = `https://manojshivagange.tech:3000/${results2[i].pathOriginal}`;
+            }
         }
         console.log(results2)
         results[0].images = results2;
+
 
 
 

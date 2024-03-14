@@ -30,10 +30,12 @@ export default async function (fastify, opts) {
     connectionString: process.env.DB_LINK,
 
   })
+  const origins = ['http://192.168.31.221:8000', "http://localhost:8080/git "]
   fastify.register(cors,{
-    origin:['http://192.168.31.221:8080'],
+    origin:origins,
     credentials: true
   })
+  console.log(origins[0])
 
   fastify.register(fastifyCookie, {
     secret: 'help',

@@ -12,7 +12,7 @@ export default async function (request, reply){
     l.creator_id,
     l.availability,
     l.highest_bid,
-    (SELECT i.pathOriginal FROM images i WHERE JSON_CONTAINS(l.images, CAST(i.id AS JSON), '$') LIMIT 1) AS image_path
+    (SELECT i.pathThumbnail as pathOriginal FROM images i WHERE JSON_CONTAINS(l.images, CAST(i.id AS JSON), '$') LIMIT 1) AS image_path
 FROM
     listings l 
     where l.id = ?;`;
